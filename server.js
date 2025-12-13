@@ -1,25 +1,20 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const connectDB = require("./src/config/db");
+
+dotenv.config();
 
 const app = express();
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Health check route
-app.get('/', (req, res) => {
-  res.json({ message: 'Bid-Bay backend is running 🚀' });
-});
+// Connect to Mongo
+connectDB();
 
-// Example route for items
-app.get('/api/items', (req, res) => {
-  res.json([
-    { id: 1, name: 'Laptop', price: 1500 },
-    { id: 2, name: 'PS5', price: 600 }
-  ]);
-});
+// Routes
+app.use("/api/items", require("./src/routes/itemRoutes"));
+app.use("/api/bids", require("./src/routes/bidRoutes"));
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
