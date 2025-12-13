@@ -1,34 +1,44 @@
 const Item = require("../models/Item");
 
-// Add new item
-exports.addItem = async (req, res) => {
+// GET all items OR category
+exports.getItems = async (req, res) => {
   try {
-    const item = await Item.create(req.body);
-    res.json({ msg: "Item added successfully", item });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Server error" });
-  }
-};
+    const { category } = req.query;
 
-// Get all items by category
-exports.getItemsByCategory = async (req, res) => {
-  try {
-    const items = await Item.find({ category: req.params.category });
+    const items = category
+      ? await Item.find({ category })
+      : await Item.find();
+
     res.json(items);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Server error" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// Get single item
-exports.getItem = async (req, res) => {
+// PLACE BID
+exports.placeBid = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.id);
+    const { amount } = req.body;
+    const { id } = req.params;
+
+    let item = await Item.findById(id);
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    if (amount <= item.currentPrice) {
+      return res.status(400).json({ message: "Bid must be higher than current price" });
+    }
+
+    // Add bid
+    item.bids.push({ amount });
+    item.latestBid = amount;
+    item.currentPrice = amount;
+
+    await item.save();
+
     res.json(item);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Server error" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
