@@ -1,6 +1,9 @@
 const Item = require("../models/Item");
 
-// GET all items OR category
+/**
+ * GET all items
+ * Optional query: ?category=electronics | furniture | vehicles
+ */
 exports.getItems = async (req, res) => {
   try {
     const { category } = req.query;
@@ -9,36 +12,66 @@ exports.getItems = async (req, res) => {
       ? await Item.find({ category })
       : await Item.find();
 
-    res.json(items);
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json(items);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch items",
+      error: error.message
+    });
   }
 };
 
-// PLACE BID
+/**
+ * POST place a bid on an item
+ * Route: /api/items/:id/bid
+ */
 exports.placeBid = async (req, res) => {
   try {
-    const { amount } = req.body;
     const { id } = req.params;
+    const { amount } = req.body;
 
-    let item = await Item.findById(id);
-    if (!item) return res.status(404).json({ message: "Item not found" });
-
-    if (amount <= item.currentPrice) {
-      return res.status(400).json({ message: "Bid must be higher than current price" });
+    // Validate bid amount
+    if (!amount || isNaN(amount)) {
+      return res.status(400).json({
+        message: "Invalid bid amount"
+      });
     }
 
-    // Add bid
-    item.bids.push({ amount });
-    item.latestBid = amount;
+    const item = await Item.findById(id);
+
+    if (!item) {
+      return res.status(404).json({
+        message: "Item not found"
+      });
+    }
+
+    if (amount <= item.currentPrice) {
+      return res.status(400).json({
+        message: "Bid must be higher than the current price"
+      });
+    }
+
+    // Save bid
+    item.bids.push({
+      amount,
+      timestamp: new Date()
+    });
+
     item.currentPrice = amount;
+    item.latestBid = amount;
 
     await item.save();
 
-    res.json(item);
+    // ✅ ALWAYS return a message so frontend never sees "undefined"
+    return res.status(200).json({
+      message: "Bid placed successfully",
+      item
+    });
 
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while placing bid",
+      error: error.message
+    });
   }
 };
