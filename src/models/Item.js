@@ -1,17 +1,15 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const BidSchema = new mongoose.Schema({
-  amount: Number,
-  timestamp: { type: Date, default: Date.now }
-});
+const itemSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    image: { type: String, required: true },
+    category: { type: String, required: true },
+    subCategory: { type: String },
+    currentPrice: { type: Number, required: true },
+    bids: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bid" }]
+  },
+  { timestamps: true }
+);
 
-const ItemSchema = new mongoose.Schema({
-  title: String,
-  category: String,
-  image: String,
-  currentPrice: Number,
-  latestBid: Number,
-  bids: [BidSchema]
-});
-
-module.exports = mongoose.model("Item", ItemSchema);
+export default mongoose.model("Item", itemSchema);

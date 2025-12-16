@@ -1,10 +1,11 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const BidSchema = new mongoose.Schema({
-  itemId: { type: mongoose.Schema.Types.ObjectId, ref: "Item", required: true },
-  bidder: { type: String, default: "Guest" }, // until you add login system
-  amount: { type: Number, required: true },
-  createdAt: { type: Date, default: Date.now }
-});
+const bidSchema = new mongoose.Schema(
+  {
+    amount: { type: Number, required: true },
+    item: { type: mongoose.Schema.Types.ObjectId, ref: "Item" }
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("Bid", BidSchema);
+export default mongoose.model("Bid", bidSchema);
