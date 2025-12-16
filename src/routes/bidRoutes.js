@@ -3,6 +3,7 @@ import { placeBid } from "../controllers/bidController.js";
 
 const router = express.Router();
 
-router.post("/:itemId", placeBid);
+// FULL path defined here
+router.post("/items/:itemId/bid", placeBid);
 
 export default router;
